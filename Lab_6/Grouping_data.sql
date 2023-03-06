@@ -1,0 +1,93 @@
+use UNIVER;
+
+SELECT * FROM AUDITORIUM;
+
+SELECT * FROM AUDITORIUM_TYPE;
+
+------------1-2
+SELECT AUDITORIUM.AUDITORIUM_TYPE,
+		MAX(AUDITORIUM_CAPACITY) [Максимальная вместимость],
+		MIN(AUDITORIUM_CAPACITY) [Минимальная вместимость],
+		SUM(AUDITORIUM_CAPACITY) [Суммарная вместимость],
+		COUNT(*) [Общее количество аудиторий]
+		FROM AUDITORIUM INNER JOIN AUDITORIUM_TYPE
+		ON AUDITORIUM.AUDITORIUM_TYPE = AUDITORIUM_TYPE.AUDITORIUM_TYPE
+		GROUP BY AUDITORIUM.AUDITORIUM_TYPE; 
+
+------------3
+SELECT * FROM PROGRESS;
+
+SELECT * 
+		FROM (SELECT 
+				CASE
+					WHEN NOTE between 8 and 10 then 'от 8 до 10'
+					WHEN NOTE between 5 and 7 then 'от 5 до 7'
+					ELSE '4 и меньше'
+				END [Пределы оценок], COUNT(*)[Количество]
+		FROM PROGRESS
+		GROUP BY
+		CASE
+			WHEN NOTE between 8 and 10 then 'от 8 до 10'
+			WHEN NOTE between 5 and 7 then 'от 5 до 7'
+			ELSE '4 и меньше'
+		END ) AS T 
+			ORDER BY 
+			CASE [Пределы оценок]
+				WHEN 'от 8 до 10' then 3
+				WHEN 'от 5 до 7' then 2
+				WHEN 'меньше 4' then 1
+				ELSE 0
+			END 
+
+			
+------------4-5
+SELECT * FROM FACULTY;
+SELECT * FROM GROUPS;
+SELECT * FROM STUDENT;
+SELECT * FROM PROGRESS;
+
+SELECT FACULTY.FACULTY,
+		PROGRESS.SUBJECT,
+		GROUPS.PROFESSION,
+		ROUND(AVG(CAST(PROGRESS.NOTE AS float(4))), 2) [Средняя экзаменационная оценка]
+		FROM FACULTY INNER JOIN GROUPS
+		ON FACULTY.FACULTY = GROUPS.FACULTY
+		INNER JOIN STUDENT
+		ON GROUPS.IDGROUP = STUDENT.IDGROUP
+		INNER JOIN PROGRESS
+		ON STUDENT.IDSTUDENT = PROGRESS.IDSTUDENT
+		WHERE PROGRESS.SUBJECT = 'ОАиП' OR PROGRESS.SUBJECT = 'СУБД'
+		GROUP BY FACULTY.FACULTY,
+				 PROGRESS.SUBJECT,
+				 GROUPS.PROFESSION
+		ORDER BY [Средняя экзаменационная оценка];
+
+------------5-6
+SELECT	PROGRESS.SUBJECT,
+		GROUPS.PROFESSION,
+		ROUND(AVG(CAST(PROGRESS.NOTE AS float(4))), 2) [Средняя экзаменационная оценка]
+		FROM FACULTY INNER JOIN GROUPS
+		ON FACULTY.FACULTY = GROUPS.FACULTY
+		INNER JOIN STUDENT
+		ON GROUPS.IDGROUP = STUDENT.IDGROUP
+		INNER JOIN PROGRESS
+		ON STUDENT.IDSTUDENT = PROGRESS.IDSTUDENT
+		WHERE FACULTY.FACULTY = 'ИДиП'
+		GROUP BY PROGRESS.SUBJECT,
+				 GROUPS.PROFESSION;
+
+------------7
+SELECT T.SUBJECT, T.Количество
+		FROM (SELECT 
+				CASE
+					WHEN NOTE between 8 and 9 then 'от 8 до 9'
+					ELSE '7 и меньше'
+				END [Пределы оценок], COUNT(*)[Количество], SUBJECT
+		FROM PROGRESS
+		GROUP BY PROGRESS.SUBJECT,
+		CASE
+			WHEN NOTE between 8 and 9 then 'от 8 до 9'
+			ELSE '7 и меньше'
+		END ) AS T 
+		GROUP BY T.SUBJECT, T.[Пределы оценок], T.Количество
+		HAVING T.[Пределы оценок] IN ('от 8 до 9');
